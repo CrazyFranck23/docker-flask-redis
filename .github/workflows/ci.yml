@@ -77,3 +77,30 @@ jobs:
       - name: Run unit tests with pytest
         run: python -m pytest -v
 
+
+  # JOB 3 : DOCKER BUILD
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          load: true
+          tags: docker-flask-redis:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Verify Docker image
+        run: docker image inspect docker-flask-redis:${{ github.sha }}
+
