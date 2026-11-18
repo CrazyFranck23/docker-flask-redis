@@ -104,3 +104,43 @@ jobs:
       - name: Verify Docker image
         run: docker image inspect docker-flask-redis:${{ github.sha }}
 
+      - name: Export Docker image
+        run: |
+          docker save docker-flask-redis:${{ github.sha }} -o docker-image.tar
+
+      - name: Upload Docker image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-image
+          path: docker-image.tar
+          retention-days: 1
+
+
+  # JOB 4 : SECURITY SCAN
+  security:
+    needs: build
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Download Docker image artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-image
+          path: .
+
+      - name: Load Docker image
+        run: docker load -i docker-image.tar
+
+      - name: Scan Docker image with Trivy
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          input: ${{ github.workspace }}/docker-image.tar
+          format: table
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+          scanners: 'vuln'
