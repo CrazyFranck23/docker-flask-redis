@@ -1,6 +1,9 @@
 # 1. Image Python de base
 FROM python:3.12-slim
 
+# Mettre à jour les paquets système pour corriger les vulnérabilités (ex: zlib1g)
+RUN apt-get update && apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
+
 # 2. Variables d'environnement Python
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1

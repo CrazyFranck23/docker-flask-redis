@@ -1,7 +1,8 @@
 import os
-import redis
 
+import redis
 from flask import Flask
+
 from app.routes import api
 
 
@@ -12,9 +13,9 @@ def create_app():
 
     app.config["REDIS_CLIENT"] = redis.Redis(
         host=os.getenv("REDIS_HOST", "localhost"),
-        port=int(os.getenv("REDIS_PORT", 6379)),
+        port=int(os.getenv("REDIS_PORT", "6379")),
         decode_responses=True,
-        socket_connect_timeout=2
+        socket_connect_timeout=2,
     )
 
     app.register_blueprint(api)
