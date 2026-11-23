@@ -237,9 +237,17 @@ jobs:
 
           echo "$response" | grep -q '"status"[[:space:]]*:[[:space:]]*"healthy"'
 
-      - name: Display logs if deployment fails
+      - name: Debug deployment failure
         if: failure()
-        run: docker compose -f compose.deploy.yaml logs
+        run: |
+          echo "===== CONTAINER STATUS ====="
+          docker compose -f compose.deploy.yaml ps -a
+
+          echo "===== FLASK APPLICATION LOGS ====="
+          docker compose -f compose.deploy.yaml logs app
+
+          echo "===== REDIS LOGS ====="
+          docker compose -f compose.deploy.yaml logs redis
 
       - name: Cleanup test environment
         if: always()
