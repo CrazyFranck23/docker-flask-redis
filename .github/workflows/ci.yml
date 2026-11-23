@@ -219,7 +219,7 @@ jobs:
 
       - name: Deploy application
         run: |
-          docker compose -f compose.deploy.yaml up -d --pull always
+          docker compose -f compose.deploy.yaml up -d --pull always --wait --wait-timeout 60
 
       - name: Check containers
         run: |
@@ -243,11 +243,15 @@ jobs:
           echo "===== CONTAINER STATUS ====="
           docker compose -f compose.deploy.yaml ps -a
 
+          echo "===== FLASK CONTAINER INSPECTION ====="
+          docker inspect flask-api-test \
+            --format='Status={{.State.Status}} ExitCode={{.State.ExitCode}} OOMKilled={{.State.OOMKilled}} Error={{.State.Error}} RestartCount={{.RestartCount}}'
+
           echo "===== FLASK APPLICATION LOGS ====="
-          docker compose -f compose.deploy.yaml logs app
+          docker compose -f compose.deploy.yaml logs --tail=200 app
 
           echo "===== REDIS LOGS ====="
-          docker compose -f compose.deploy.yaml logs redis
+          docker compose -f compose.deploy.yaml logs --tail=100 redis
 
       - name: Cleanup test environment
         if: always()
