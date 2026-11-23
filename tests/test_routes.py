@@ -26,7 +26,7 @@ def test_home_route(client):
     response = test_client.get("/")
 
     assert response.status_code == 200
-    assert response.json == {"message": "Welcome to my FAILED TEST!"}
+    assert response.json == {"message": "Welcome to my Flask API!"}
 
 
 def test_health_route_redis_connected(client):
