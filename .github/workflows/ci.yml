@@ -144,3 +144,45 @@ jobs:
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
           scanners: 'vuln'
+
+
+  # JOB 5 : PUBLISH TO GHCR
+  publish:
+    needs: security
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Download Docker image artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-image
+          path: .
+
+      - name: Load Docker image
+        run: docker load -i docker-image.tar
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Tag and push Docker image
+        run: |
+          IMAGE_NAME="ghcr.io/${GITHUB_REPOSITORY,,}"
+
+          docker tag docker-flask-redis:${GITHUB_SHA} \
+            ${IMAGE_NAME}:${GITHUB_SHA}
+
+          docker push ${IMAGE_NAME}:${GITHUB_SHA}
+
+          if [ "${GITHUB_REF_NAME}" = "dev" ]; then
+            docker tag ${IMAGE_NAME}:${GITHUB_SHA} ${IMAGE_NAME}:dev
+            docker push ${IMAGE_NAME}:dev
+          fi
